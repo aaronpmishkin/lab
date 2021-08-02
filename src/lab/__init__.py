@@ -2,28 +2,16 @@
 Linear algebra backends.
 """
 from typing import Union, List, Tuple, Optional, Any, Iterable, Dict
+from itertools import product
 
 import numpy as np
 import torch
 import opt_einsum as oe  # type: ignore
 
-from .numpy_engine import np_map
-from .torch_engine import torch_map
-from .cupy_engine import cp_map, cp
+from .numpy_backend import np_map
+from .torch_backend import torch_map
+from .cupy_backend import cp_map, cp
 
-# available backends
-
-TORCH = "torch"
-NUMPY = "numpy"
-CUPY = "cupy"
-
-BACKENDS = [TORCH, NUMPY]
-TESTABLE_BACKENDS = [(NUMPY,), (TORCH,)]
-
-# devices
-
-CPU = "cpu"
-CUDA = "cuda"
 
 # ===== types ===== #
 
@@ -31,16 +19,24 @@ CUDA = "cuda"
 Tensor = Union[np.ndarray, torch.Tensor]
 TensorType = Union[torch.dtype, np.dtype, type]
 
-# ===== globals ===== #
+# ===== constants ===== #
 
-# active backend
-backend: str = NUMPY
+# backends
 
-# generators
-np_rng = np.random.Generator
-torch_rng = torch.Generator
+TORCH = "torch"
+NUMPY = "numpy"
+CUPY = "cupy"
 
-# available dtypes
+BACKENDS = [TORCH, NUMPY]
+
+
+# devices
+
+CPU = "cpu"
+CUDA = "cuda"
+
+# dtypes
+
 FLOAT32: str = "float32"
 FLOAT64: str = "float64"
 INT32: str = "INT32"
@@ -48,11 +44,27 @@ INT64: str = "INT64"
 
 DTYPES: List[str] = [FLOAT32, FLOAT64, INT32, INT64]
 
-float32: TensorType = np.float32
-float64: TensorType = np.float64
-int32: TensorType = np.int32
-int64: TensorType = np.int64
 
+# testing
+
+TESTABLE_DTYPES = [FLOAT32, FLOAT64]
+TESTABLE_BACKENDS = [NUMPY, TORCH]
+
+TEST_DICT = {"backend": TESTABLE_BACKENDS, "dtype": TESTABLE_DTYPES}
+
+TEST_GRID = [
+    dict(zip(TEST_DICT.keys(), values)) for values in product(*TEST_DICT.values())
+]
+
+# ===== globals ===== #
+
+
+# active backend
+backend: str = NUMPY
+
+# generators
+np_rng = np.random.Generator
+torch_rng = torch.Generator
 dtype_str: str = FLOAT32
 default_dtype: Dict[str, TensorType] = {"value": np.float32}
 
