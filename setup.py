@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.1.0",
     author="Aaron Mishkin",
     author_email="amishkin@cs.stanford.edu",
-    description="Linear Algebra Backends: a lightweight, fixed interface for different of linear algebra engines.",
+    description="Linear Algebra Backends: a lightweight interface for linear algebra engines.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/aaronpmishkin/lab",

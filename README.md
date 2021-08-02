@@ -1,6 +1,6 @@
 # LAB 
 
-Linear Algebra Backends: a lightweight, fixed interface for different of linear algebra engines.
+Linear Algebra Backends: a lightweight interface for linear algebra engines.
 
 
 **Current Engines**: [Numpy](https://numpy.org) and [PyTorch](https://pytorch.org).
