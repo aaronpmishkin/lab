@@ -142,6 +142,18 @@ def torch_tensor(x: Any, dtype: torch.dtype = None) -> torch.Tensor:
     return torch.tensor(x, device=active_device["value"], dtype=dtype)
 
 
+def torch_all(x: torch.Tensor, axis: Optional[int] = None) -> torch.Tensor:
+    if axis is not None:
+        return torch.all(x, dim=axis)
+    else:
+        return torch.all(x)
+
+
+def torch_sort(x: torch.Tensor, axis: Optional[int] = -1) -> torch.Tensor:
+    x_sorted, _ = torch.sort(x, dim=axis)
+    return x_sorted
+
+
 torch_map = {
     # scaffolding
     "set_device": torch_set_device,
@@ -182,7 +194,7 @@ torch_map = {
     "size": torch.numel,
     "sign": torch.sign,
     "where": torch.where,
-    "all": torch.all,
+    "all": torch_all,
     "any": torch.any,
     "eye": torch.eye,
     "solve": torch.linalg.solve,
@@ -193,6 +205,9 @@ torch_map = {
     "to_np": torch_to_np,
     "ravel": torch.ravel,
     "dot": torch.dot,
+    "copy": torch.clone,
+    "logical_not": torch.logical_not,
+    "sort": torch_sort,
     # constants
     "float32": torch.float32,
     "float64": torch.float64,

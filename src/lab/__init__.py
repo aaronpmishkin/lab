@@ -536,9 +536,10 @@ def where(condition: Tensor, x: Tensor, y: Tensor) -> Tensor:
     pass
 
 
-def all(x: Tensor) -> bool:
+def all(x: Tensor, axis: Optional[int] = None) -> Union[bool, Tensor]:
     """Test whether all tensor elements are truthy.
     :param x: Tensor.
+    :param axis: axis over which to restrict the 'and' operation.
     :returns: bool.
     """
 
@@ -604,6 +605,54 @@ def ravel(x: Tensor) -> Tensor:
     """Return a contiguous flattened tensor. Equivalent to x.reshape(-1), but often faster.
     :param x: Tensor.
     :returns: flattened version of x.
+    """
+
+    pass
+
+
+def copy(x: Tensor) -> Tensor:
+    """Return a copy of the provided tensor.
+    :param x: Tensor.
+    :returns: x copied into a new memory location.
+    """
+
+    pass
+
+
+def isin(
+    elements: Tensor,
+    test_elements: Tensor,
+    assume_unique: bool = False,
+    invert: bool = False,
+) -> Tensor:
+    """Test if each element of elements is in test_elements.
+    :param elements: the tensor of elements to search.
+    :param test_elements: the tensor of elements to lookup.
+    :param assume_unique: whether or not both 'elements' and 'test_elements' contain
+        unique values.
+    :param invert: invert the truth-value of the return values, so that False is returned
+        for each element of 'test_elements' in 'elements'.
+    :returns: tensor of booleans the same length as 'test_elements'.
+    """
+
+    pass
+
+
+def logical_not(x: Tensor) -> Tensor:
+    """Compute the logical not of the elements of the input tensor.
+    :param x: the input tensor.
+    :returns: not(x).
+    """
+
+    pass
+
+
+def sort(x: Tensor, axis: Optional[int] = None) -> Tensor:
+    """Return a sorted copy of the given tensor.
+        If 'axis' is None, the tensor is flattened before sorting.
+    :param x: the tensor to sort.
+    :param axis: the axis along which to sort the tensor.
+    :returns: a sorted copy of the tensor.
     """
 
     pass

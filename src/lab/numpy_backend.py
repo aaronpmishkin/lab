@@ -129,6 +129,10 @@ np_map = {
     "to_np": np_to_np,
     "ravel": np.ravel,
     "dot": np.dot,
+    "copy": np.copy,
+    "isin": np.isin,
+    "logical_not": np.logical_not,
+    "sort": np.sort,
     # constants
     "float32": np.float32,
     "float64": np.float64,
