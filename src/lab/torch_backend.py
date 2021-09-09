@@ -87,12 +87,19 @@ def torch_smax(x: torch.Tensor, y: float) -> torch.Tensor:
 def torch_unique(
     x: torch.Tensor, axis: int = None, return_index: bool = False
 ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
-    unique_vals = torch.unique(x, dim=axis)
 
     if return_index:
-        raise NotImplementedError("TODO!")
+        return torch_unique_w_index(x, axis)
 
-    return unique_vals
+    return torch.unique(x, dim=axis)
+
+
+def torch_unique_w_index(x, axis=None):
+    """Snipped adapted from https://github.com/pytorch/pytorch/issues/36748#issuecomment-619514810."""
+    unique, inverse = torch.unique(x, sorted=True, return_inverse=True, dim=axis)
+    perm = torch.arange(inverse.size(0), dtype=inverse.dtype, device=inverse.device)
+    inverse, perm = inverse.flip([0]), perm.flip([0])
+    return unique, inverse.new_empty(unique.size(axis)).scatter_(0, inverse, perm)
 
 
 def torch_stack(tensors: List[torch.Tensor], axis=0) -> torch.Tensor:
