@@ -374,7 +374,7 @@ def min(x: Tensor) -> Tensor:
     pass
 
 
-def smin(x: torch.Tensor, y: float) -> Tensor:
+def smin(x: Tensor, y: float) -> Tensor:
     """Take the element-wise minimum of a tensor and a scalar.
     :param x: Tensor
     :param y: float
@@ -383,12 +383,51 @@ def smin(x: torch.Tensor, y: float) -> Tensor:
     pass
 
 
-def smax(x: torch.Tensor, y: float) -> Tensor:
+def smax(x: Tensor, y: float) -> Tensor:
     """Take the element-wise maximum of a tensor and a scalar.
     :param x: Tensor
     :param y: float
     :returns: max(x, y)
     """
+    pass
+
+
+def argmin(x: Tensor, axis: Optional[int] = None):
+    """Find and return the indices of the minimum values of a tensor along an axis.
+    :param x: Tensor.
+    :param axis: the axis along which to search.
+    :returns: argmin(x)
+    """
+
+    pass
+
+
+def argmax(x: Tensor, axis: Optional[int] = None):
+    """Find and return the indices of the maximum values of a tensor along an axis.
+    :param x: Tensor.
+    :param axis: the axis along which to search.
+    :returns: argmax(x)
+    """
+
+    pass
+
+
+def cumsum(x: Tensor, axis: int, reverse: bool = False) -> Tensor:
+    """Compute the cumulative sum of tensor values along a given axis.
+    :param x: Tensor.
+    :param axis: the axis along which to sum.
+    :param reverse: whether or not to compute the cumulative sum in reverse order.
+    """
+
+    pass
+
+
+def flip(x: Tensor, axis: int) -> Tensor:
+    """Reverse the values of a tensor along a given axis.
+    :param x: Tensor.
+    :param axis: the axis along which to reverse the values.
+    """
+
     pass
 
 

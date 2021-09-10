@@ -84,6 +84,30 @@ def torch_smax(x: torch.Tensor, y: float) -> torch.Tensor:
     return torch.maximum(x, torch.tensor(y))
 
 
+def torch_argmin(x: torch.Tensor, axis: int) -> torch.Tensor:
+    return torch.argmin(x, dim=axis)
+
+
+def torch_argmax(x: torch.Tensor, axis: int) -> torch.Tensor:
+    return torch.argmax(x, dim=axis)
+
+
+def torch_cumsum(x: torch.Tensor, axis: int, reverse: bool = False) -> torch.Tensor:
+    if reverse:
+        x = torch.flip(x, dims=(axis,))
+
+    res = torch.cumsum(x, dim=axis)
+
+    if reverse:
+        res = torch.flip(x, dims=(axis,))
+
+    return res
+
+
+def torch_flip(x: torch.Tensor, axis: int) -> torch.Tensor:
+    return torch.flip(x, dims=(axis,))
+
+
 def torch_unique(
     x: torch.Tensor, axis: int = None, return_index: bool = False
 ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
@@ -185,6 +209,10 @@ torch_map = {
     "smin": torch_smin,
     "max": torch.max,
     "min": torch.min,
+    "argmax": torch_argmax,
+    "argmin": torch_argmin,
+    "cumsum": torch_cumsum,
+    "flip": torch_flip,
     "diag": torch.diag,
     "abs": torch.abs,
     "exp": torch.exp,

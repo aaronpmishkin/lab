@@ -78,6 +78,13 @@ def np_tensor(x: Any, dtype: type = None) -> np.ndarray:
     return np.array(x, dtype=dtype)
 
 
+def np_cumsum(x: np.ndarray, axis, reverse: bool = False) -> np.ndarray:
+    if reverse:
+        return x[..., ::-1].cumsum(axis=-1)[..., ::-1]
+
+    return np.cumsum(x, axis=axis)
+
+
 np_map = {
     # scaffolding
     "set_device": np_set_device,
@@ -102,6 +109,10 @@ np_map = {
     "smin": np.minimum,
     "max": np.max,
     "min": np.min,
+    "argmin": np.argmin,
+    "argmax": np.argmax,
+    "cumsum": np_cumsum,
+    "flip": np.flip,
     "diag": np.diag,
     "abs": np.abs,
     "exp": np.exp,
