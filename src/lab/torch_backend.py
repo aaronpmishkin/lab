@@ -99,7 +99,7 @@ def torch_cumsum(x: torch.Tensor, axis: int, reverse: bool = False) -> torch.Ten
     res = torch.cumsum(x, dim=axis)
 
     if reverse:
-        res = torch.flip(x, dims=(axis,))
+        res = torch.flip(res, dims=(axis,))
 
     return res
 
