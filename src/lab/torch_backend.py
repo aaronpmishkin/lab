@@ -243,6 +243,7 @@ torch_map = {
     "copy": torch.clone,
     "logical_not": torch.logical_not,
     "sort": torch_sort,
+    "squeeze": torch.squeeze,
     # constants
     "float32": torch.float32,
     "float64": torch.float64,

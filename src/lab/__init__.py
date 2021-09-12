@@ -697,6 +697,15 @@ def sort(x: Tensor, axis: Optional[int] = None) -> Tensor:
     pass
 
 
+def squeeze(x: Tensor) -> Tensor:
+    """Removes all dimensions of input tensor with size one.
+    :param x: tensor
+    :returns: squeeze(x)
+    """
+
+    pass
+
+
 # =============== #
 
 # default to numpy

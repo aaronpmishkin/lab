@@ -144,6 +144,7 @@ np_map = {
     "isin": np.isin,
     "logical_not": np.logical_not,
     "sort": np.sort,
+    "squeeze": np.squeeze,
     # constants
     "float32": np.float32,
     "float64": np.float64,
