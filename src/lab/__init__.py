@@ -63,8 +63,8 @@ TEST_GRID = [
 backend: str = NUMPY
 
 # generators
-np_rng = np.random.Generator
-torch_rng = torch.Generator
+np_rng: np.random.Generator = np.random.default_rng()
+torch_rng: torch.Generator = torch.random.default_generator
 dtype_str: str = FLOAT32
 default_dtype: Dict[str, TensorType] = {"value": np.float32}
 
