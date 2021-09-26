@@ -21,8 +21,6 @@ def torch_set_device(device_name: str):
         # cuda must be available to run in this mode.
         assert torch.cuda.is_available()
         device_name = f"cuda:{torch.cuda.current_device()}"
-    elif "cuda" in device_name:
-        assert torch.cuda.is_available()
 
     globals()["active_device"]["value"] = device_name
 
