@@ -29,11 +29,16 @@ CUPY = "cupy"
 
 BACKENDS = [TORCH, NUMPY]
 
+# underlying dtypes
+float32 = np.float32
+float64 = np.float64
+int32 = np.int32
+int64 = np.int64
 
 # devices
 
-CPU = "cpu"
-CUDA = "cuda"
+CPU: str = "cpu"
+CUDA: str = "cuda"
 
 # dtypes
 
@@ -534,7 +539,7 @@ def stack(
     pass
 
 
-def all_close(
+def allclose(
     x: Tensor,
     y: Tensor,
     rtol: float = 1e-5,

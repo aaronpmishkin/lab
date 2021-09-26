@@ -172,7 +172,10 @@ def torch_ones(
 
 
 def torch_tensor(x: Any, dtype: torch.dtype = None) -> torch.Tensor:
-    return torch.tensor(x, device=active_device["value"], dtype=dtype)
+    if not torch.is_tensor(x):
+        x = torch.tensor(x, device=active_device["value"], dtype=dtype)
+
+    return x
 
 
 def torch_all(x: torch.Tensor, axis: Optional[int] = None) -> torch.Tensor:
