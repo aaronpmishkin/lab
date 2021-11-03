@@ -509,7 +509,7 @@ def expand_dims(x: Tensor, axis: Union[int, Tuple[int, ...]]) -> Tensor:
     pass
 
 
-def tranpose(x: Tensor, dim0: int, dim1: int) -> Tensor:
+def transpose(x: Tensor, dim0: int, dim1: int) -> Tensor:
     """Swap the given dimensions of the tensor x to produce it's transpose.
     :returns: Tensor
     """
