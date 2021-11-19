@@ -1,147 +1,107 @@
 """
-PyTorch implementation of backend for linear algebra operations.
+Interface for implementation of linear algebra backends.
 """
-from typing import Union, List, Tuple, Optional, cast, Any, overload
 
-import torch
+from typing import Union, List, Tuple, Optional, Any, Iterable, overload
+
 import numpy as np
-
-from .backend import Backend
-
-# scaffolding
 
 from lab import Tensor, TensorList, TensorType
 
 
-class TorchBackend(Backend):
-
-    """Wrapper for linear algebra operations implemented by PyTorch.
+class Backend:
+    """Interface for linear algebra backends.
     :param name: a name for the linear algebra backend. Defaults to `None`, in which case the backend is anonymous.
     """
 
-    # TODO: replace types here with enumerate types.
-
-    active_device: str
-    default_dtype: TensorType
+    # ============================ #
+    # ===== Concrete Methods ===== #
+    # ============================ #
 
     def __init__(self, name: Optional[str] = None):
-        super().__init__(name)
+        self.name = name
 
-        self.toggle_autodiff(False)
-        # TODO: update with constants.
-        self.set_device("cpu")
-        self.set_default_dtype(torch.float64)
+    def all_to_np(self, list_of_x: Iterable[Tensor]) -> List[np.ndarray]:
+        return [self.to_np(x) for x in list_of_x]
+
+    # ============================ #
+    # ===== Abstract Methods ===== #
+    # ============================ #
 
     # ===== Setters ===== #
-
-    # TODO: update type with enumeration.
-    def set_device(self, device_name: str):
-        """Set the default device for linear algebra operations.
-        :param device_name: a string identifying the device to use.
-        """
-        if "cuda" in device_name:
-            # cuda must be available to run in this mode.
-            assert torch.cuda.is_available()
-
-        # use the current cuda device.
-        if device_name == "cuda":
-            device_name = f"cuda:{torch.cuda.current_device()}"
-
-        self.active_device = device_name
-
-    def set_default_dtype(self, dtype: TensorType):
-        """Set the default device for linear algebra operations.
-        :param device_name: a string identifying the device to use.
-        """
-        assert isinstance(dtype, torch.dtype)
-
-        self.default_dtype = dtype
-        torch.set_default_dtype(dtype)
 
     def toggle_autodiff(self, use_autodiff: bool):
         """Toggle an auto-diff engine associated with the backend.
         :param use_autodiff: whether or not to enable the autodiff engine.
         """
+        pass
 
-        # disable *all* gradient computations.
-        if "1.9" in torch.__version__:
-            # only available in 1.9.*
-            torch.inference_mode(not use_autodiff)
-        else:
-            torch.set_grad_enabled(use_autodiff)
+    def set_global_dtype(self, dtype: TensorType):
+        """Set the default device for linear algebra operations.
+        :param device_name: a string identifying the device to use.
+        """
+        pass
 
-    # ===== Linear Algebra Methods ===== #
+    def set_device(self, device_name: str):
+        """Set the default device for linear algebra operations.
+        :param device_name: a string identifying the device to use.
+        """
+        pass
+
+    # ====== Linear Algebra Methods ===== #
 
     # creation ops
+
     def tensor(self, x: Any, dtype: TensorType = None) -> Tensor:
         """Create a new tensor.
         :param x: an array-like object with data for the new tensor.
         :param dtype: the data type to use when constructing the tensor.
         :returns: a new Tensor object with supplied data and type.
         """
-        if dtype is None:
-            dtype = self.default_dtype
-
-        assert isinstance(dtype, torch.dtype)
-        return torch.tensor(x, device=self.active_device, dtype=dtype)
+        pass
 
     def ravel(self, x: Tensor) -> Tensor:
         """Return a contiguous flattened tensor. Equivalent to x.reshape(-1), but often faster.
         :param x: Tensor.
         :returns: flattened version of x.
         """
-        assert isinstance(x, torch.Tensor)
-        return x.ravel()
+        pass
 
     def copy(self, x: Tensor) -> Tensor:
         """Return a copy of the provided tensor.
         :param x: Tensor.
         :returns: x copied into a new memory location.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.clone(x)
+        pass
 
     def size(self, x: Tensor) -> int:
         """Compute the total size of a tensor, i.e. the number of elements across all axes.
         :param x: Tensor.
         :returns: the number of elements in x.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.numel(x)
+        pass
 
     def to_scalar(self, x: Union[Tensor, float]) -> float:
         """Cast a 1-element tensor into a floating point number.
         :param x: a tensor or floating point number.
         :returns: scalar value that was stored in x or x if it is already a floating point number.
         """
-        if torch.is_tensor(x):
-            x = cast(torch.Tensor, x)
-            assert torch.numel(x) == 1
-
-            return x.detach().cpu().item()
-        else:
-            assert isinstance(x, float)
-
-        x = cast(float, x)
-        return x
+        pass
 
     def to_np(self, x: Tensor) -> np.ndarray:
         """Cast a given tensor into a NumPy array on the CPU.
         :param x: Tensor.
         :returns: np.ndarray(x)
         """
-        assert isinstance(x, torch.Tensor)
-
-        return x.detach().cpu().numpy()
+        pass
 
     def concatenate(self, tensors: TensorList, axis: int = 0) -> Tensor:
-        """Join sequence of tensors along an exiting axis.
+        """Join list of tensors along an exiting axis.
         :param tensors: list of tensors to join.
         :param axis: the along which to join the tensors.
         :returns: tensors concatenated along the given axis.
         """
-        tensors = cast(List[torch.Tensor], tensors)
-        return torch.cat(tensors, dim=axis)
+        pass
 
     def stack(
         self,
@@ -152,8 +112,7 @@ class TorchBackend(Backend):
         :param axis: the axis along which to join the tensors.
         :returns: Tensor
         """
-        tensors = cast(List[torch.Tensor], tensors)
-        return torch.stack(tensors, dim=axis)
+        pass
 
     def zeros(
         self, shape: Union[List[int], Tuple[int, ...]], dtype: TensorType = None
@@ -163,16 +122,14 @@ class TorchBackend(Backend):
         :param dtype: the data type to use for the tensor.
         :returns: tensor filled with zeros of the desired shape.
         """
-        assert isinstance(dtype, torch.dtype)
-        return torch.zeros(shape, device=self.active_device, dtype=dtype)
+        pass
 
     def zeros_like(self, x: Tensor) -> Tensor:
         """Return a tensor of zeros with the same shape and type as the input tensor.
         :param x: Tensor
         :returns: a tensor with the same shape and type as x, filled with zeros.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.zeros_like(x)
+        pass
 
     def ones(
         self, shape: Union[List[int], Tuple[int, ...]], dtype: TensorType = None
@@ -182,16 +139,14 @@ class TorchBackend(Backend):
         :param dtype: the data type to use for the tensor.
         :returns: tensor filled with ones of the desired shape.
         """
-        assert isinstance(dtype, torch.dtype)
-        return torch.ones(shape, device=self.active_device, dtype=dtype)
+        pass
 
     def ones_like(self, x: Tensor) -> Tensor:
         """Return a tensor of ones with the same shape and type as the input tensor.
         :param x: Tensor
         :returns: a tensor with the same shape and type as x, filled with ones.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.ones_like(x)
+        pass
 
     def diag(self, x: Tensor) -> Tensor:
         """Extract the diagonal of a tensor or construct a diagonal tensor.
@@ -199,15 +154,14 @@ class TorchBackend(Backend):
             If 'x' is 1-d, then 'Diag(x)' is returned.
         :returns: Tensor
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.diag(x)
+        pass
 
     def eye(self, d: int) -> Tensor:
         """Return the identity operator as a 2d array of dimension d.
         :param x: Tensor.
         :returns: Tensor.
         """
-        return torch.eye(d)
+        pass
 
     @overload
     def arange(self, end: Union[int, float]) -> Tensor:
@@ -234,7 +188,7 @@ class TorchBackend(Backend):
         :param stop: the (exclusive) stopping value for the interval.
         :param step: (optional) the increment to use when generating the values.
         """
-        return torch.arange(start, end, step)
+        pass
 
     def expand_dims(self, x: Tensor, axis: int) -> Tensor:
         """Insert a new axis into the tensor at 'axis' position.
@@ -242,16 +196,14 @@ class TorchBackend(Backend):
         :param axis: the position in new tensor when the axis is placed.
         :returns: Tensor.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.unsqueeze(x, axis)
+        pass
 
     def squeeze(self, x: Tensor) -> Tensor:
         """Removes all dimensions of input tensor with size one.
         :param x: tensor
         :returns: squeeze(x)
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.squeeze(x)
+        pass
 
     # math ops
 
@@ -260,8 +212,7 @@ class TorchBackend(Backend):
         :param x: Tensor.
         :returns: sign(x)
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.sign(x)
+        pass
 
     def safe_divide(self, x: Tensor, y: Tensor) -> Tensor:
         """Divide two tensors *safely*, where division by 0 is replaced with 0.
@@ -269,65 +220,52 @@ class TorchBackend(Backend):
         :param y: Tensor.
         :returns: x ./ y
         """
-        # handle case where y is a scalar
-        if not torch.is_tensor(y):
-            y = torch.tensor(y)
-
-        assert isinstance(x, torch.Tensor)
-        y = cast(torch.Tensor, y)
-
-        return x * torch.nan_to_num(1.0 / y)
+        pass
 
     def divide(self, x: Tensor, y: Tensor) -> Tensor:
-        """Element-wise divide two tensors with broadcast-able shapes.
+        """Element-wise divide two tensors with broadcastable shapes.
         Note: this is *not* zero safe. Use 'safe_divide' when 0/0 is possible.
         :param x: Tensor
         :param y: Tensor
         :returns: x ./ y
         """
-        assert isinstance(x, torch.Tensor) and isinstance(y, torch.Tensor)
-        return torch.divide(x, y)
+        pass
 
     def multiply(self, x: Tensor, y: Tensor) -> Tensor:
-        """Element-wise multiply two tensors with broadcast-able shapes.
+        """Element-wise multiply two tensors with broadcastable shapes.
         :param x: Tensor
         :param y: Tensor
         :returns: x .* y
         """
-        assert isinstance(x, torch.Tensor) and isinstance(y, torch.Tensor)
-        return torch.multiply(x, y)
+        pass
 
     def abs(self, x: Tensor) -> Tensor:
         """Element-wise absolute value of a tensor.
         :param x: Tensor
         :returns: |x|
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.abs(x)
+        pass
 
     def exp(self, x: Tensor) -> Tensor:
         """Element-wise exponential of a tensor.
         :param x: Tensor
         :returns: exp(x)
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.exp(x)
+        pass
 
     def log(self, x: Tensor) -> Tensor:
         """Element-wise logarithm of a tensor.
         :param x: Tensor
         :returns: log(x)
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.log(x)
+        pass
 
     def sqrt(self, x: Tensor) -> Tensor:
         """Element-wise square-root of a tensor.
         :param x: Tensor
         :returns: sqrt(x)
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.sqrt(x)
+        pass
 
     def logsumexp(
         self, x: Tensor, axis: Optional[Union[int, Tuple[int, ...]]] = None
@@ -338,12 +276,7 @@ class TorchBackend(Backend):
             Default is to sum over all entries.
         :returns: log(x)
         """
-        assert isinstance(x, torch.Tensor)
-
-        if axis is None:
-            axis = tuple(i for i in range(len(x.shape)))
-
-        return torch.logsumexp(x, dim=axis)
+        pass
 
     def digitize(self, x: Tensor, boundaries: Tensor) -> Tensor:
         """Digitize or "bucketize" the values of x, returning the bucket index for each element.
@@ -351,10 +284,7 @@ class TorchBackend(Backend):
         :param boundaries: Tensor. The boundaries of the buckets to use for digitizing x.
         :returns: a tensor where each element has been replaced by the index of the bucket into which it falls.
         """
-        assert isinstance(x, torch.Tensor)
-        assert isinstance(boundaries, torch.Tensor)
-
-        return torch.bucketize(x, boundaries)
+        pass
 
     def maximum(self, x: Tensor, y: Tensor) -> Tensor:
         """Element-wise maximum of the two input tensors.
@@ -362,9 +292,7 @@ class TorchBackend(Backend):
         :param y: Tensor
         :returns: max(x, y)
         """
-        assert isinstance(x, torch.Tensor)
-        assert isinstance(y, torch.Tensor)
-        return torch.maximum(x, y)
+        pass
 
     def minimum(self, x: Tensor, y: Tensor) -> Tensor:
         """Element-wise minimum of the two input tensors.
@@ -372,9 +300,7 @@ class TorchBackend(Backend):
         :param y: Tensor
         :returns: min(x, y)
         """
-        assert isinstance(x, torch.Tensor)
-        assert isinstance(y, torch.Tensor)
-        return torch.minimum(x, y)
+        pass
 
     def smax(self, x: Tensor, y: float) -> Tensor:
         """Take the element-wise maximum of a tensor and a scalar.
@@ -382,8 +308,7 @@ class TorchBackend(Backend):
         :param y: float
         :returns: max(x, y)
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.maximum(x, torch.tensor(y))
+        pass
 
     def smin(self, x: Tensor, y: float) -> Tensor:
         """Take the element-wise minimum of a tensor and a scalar.
@@ -391,32 +316,28 @@ class TorchBackend(Backend):
         :param y: float
         :returns: min(x, y)
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.minimum(x, torch.tensor(y))
+        pass
 
     def isnan(self, x: Tensor) -> Tensor:
         """Return an new tensor where each element is a boolean indicating if that element of 'x' is 'nan'.
         :param x: Tensor.
         :returns: boolean Tensor.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.isnan(x)
+        pass
 
     def floor(self, x: Tensor) -> Tensor:
         """Return the floor of the input element-wise.
         :param x: Tensor.
         :returns: a new Tensor whose elements are those of 'x' rounded down to the nearest integer.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.floor(x)
+        pass
 
     def ceil(self, x: Tensor) -> Tensor:
         """Return the ceiling of the input element-wise.
         :param x: Tensor.
         :returns: a new Tensor whose elements are those of 'x' rounded up to the nearest integer.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.ceil(x)
+        pass
 
     def cumsum(self, x: Tensor, axis: int, reverse: bool = False) -> Tensor:
         """Compute the cumulative sum of tensor values along a given axis.
@@ -424,29 +345,17 @@ class TorchBackend(Backend):
         :param axis: the axis along which to sum.
         :param reverse: whether or not to compute the cumulative sum in reverse order.
         """
-        assert isinstance(x, torch.Tensor)
-
-        if reverse:
-            x = torch.flip(x, dims=(axis,))
-
-        res = torch.cumsum(x, dim=axis)
-
-        if reverse:
-            res = torch.flip(res, dims=(axis,))
-
-        return res
+        pass
 
     # matrix ops
+
     def matmul(self, x: Tensor, y: Tensor) -> Tensor:
         """Matrix product of two tensors.
         :param x: the first matrix.
         :param y: the second matrix.
         :returns: x @ y
         """
-        assert isinstance(x, torch.Tensor)
-        assert isinstance(y, torch.Tensor)
-
-        return torch.matmul(x, y)
+        pass
 
     def dot(self, x: Tensor, y: Tensor) -> Tensor:
         """Euclidean inner-product of two vectors.
@@ -454,10 +363,7 @@ class TorchBackend(Backend):
         :param y: the second (d,) vector.
         :returns: <x, y>
         """
-        assert isinstance(x, torch.Tensor)
-        assert isinstance(y, torch.Tensor)
-
-        return torch.dot(x, y)
+        pass
 
     def transpose(self, x: Tensor, dim0: int, dim1: int) -> Tensor:
         """Swap the given dimensions of the tensor x to produce it's transpose.
@@ -466,8 +372,7 @@ class TorchBackend(Backend):
         :param dim1: the first dimension of the two dimensions to exchange.
         :returns: tensor with the position of dimensions dim0, dim1 exchanged.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.transpose(x, dim0, dim1)
+        pass
 
     def solve(self, A: Tensor, b: Tensor) -> Tensor:
         """Solve the linear system Ax = b for the input 'x'.
@@ -475,22 +380,21 @@ class TorchBackend(Backend):
         :param b: the targets of the linear system.
         :returns: Tensor. x, the solution to the linear system.
         """
-        assert isinstance(A, torch.Tensor)
-        assert isinstance(b, torch.Tensor)
-        return torch.linalg.solve(A, b)
+        pass
 
     def flip(self, x: Tensor, axis: int) -> Tensor:
         """Reverse the values of a tensor along a given axis.
         :param x: Tensor.
         :param axis: the axis along which to reverse the values.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.flip(x, dims=(axis,))
+        pass
+
+    # reduction ops
 
     def sum(
         self,
         x: Tensor,
-        axis: Optional[Union[int, Tuple[int, ...]]] = (),
+        axis: Optional[Union[int, Tuple[int, ...]]] = None,
         keepdims: bool = False,
     ) -> Tensor:
         """Sum of tensor elements over a given axis.
@@ -501,13 +405,12 @@ class TorchBackend(Backend):
             with size one in the result.
         :returns: tensor or float.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.sum(x, dim=axis, keepdim=keepdims)
+        pass
 
     def mean(
         self,
         x: Tensor,
-        axis: Optional[Union[int, Tuple[int, ...]]] = (),
+        axis: Optional[Union[int, Tuple[int, ...]]] = None,
         keepdims: bool = False,
     ) -> Tensor:
         """Sum of tensor elements over a given axis.
@@ -518,42 +421,37 @@ class TorchBackend(Backend):
             with size one in the result.
         :returns: tensor or float.
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.mean(x, dim=axis, keepdim=keepdims)
+        pass
 
     def max(self, x: Tensor) -> Tensor:
         """Element-wise maximum of the input tensor.
         :param x: Tensor
         :returns: max(x)
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.max(x)
+        pass
 
     def min(self, x: Tensor) -> Tensor:
         """Element-wise minimum of the input tensor.
         :param x: Tensor
         :returns: max(x)
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.min(x)
+        pass
 
-    def argmax(self, x: Tensor, axis: int) -> Tensor:
-        """Find and return the indices of the maximum values of a tensor along an axis.
-        :param x: Tensor.
-        :param axis: the axis along which to search.
-        :returns: argmax(x)
-        """
-        assert isinstance(x, torch.Tensor)
-        return torch.argmax(x, dim=axis)
-
-    def argmin(self, x: Tensor, axis: int) -> Tensor:
+    def argmin(self, x: Tensor, axis: Optional[int] = None):
         """Find and return the indices of the minimum values of a tensor along an axis.
         :param x: Tensor.
         :param axis: the axis along which to search.
         :returns: argmin(x)
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.argmin(x, dim=axis)
+        pass
+
+    def argmax(self, x: Tensor, axis: Optional[int] = None):
+        """Find and return the indices of the maximum values of a tensor along an axis.
+        :param x: Tensor.
+        :param axis: the axis along which to search.
+        :returns: argmax(x)
+        """
+        pass
 
     def unique(
         self, x: Tensor, axis: int = None, return_index: bool = False
@@ -564,13 +462,7 @@ class TorchBackend(Backend):
         :param return_index: whether or not to also return the first index at which each unique value is found.
         :returns: Tensor
         """
-        unique_vals = torch.unique(x, dim=axis)
-
-        # TODO: complete this or refuse to support it?
-        if return_index:
-            raise NotImplementedError("TODO!")
-
-        return unique_vals
+        pass
 
     # comparison ops
 
@@ -587,9 +479,7 @@ class TorchBackend(Backend):
         :param rtol: the relative tolerance to use.
         :param atol: the absolute tolerance to use.
         """
-        assert isinstance(x, torch.Tensor)
-        assert isinstance(y, torch.Tensor)
-        return torch.allclose(x, y, rtol, atol)
+        pass
 
     def where(self, condition: Tensor, x: Tensor, y: Tensor) -> Tensor:
         """Return elements from x or y depending on the 'condition' tensor.
@@ -597,35 +487,23 @@ class TorchBackend(Backend):
         :param x: the matrix to retrieve elements from when 'condition' is True.
         :param y: the matrix to retrieve elements from when 'condition' is False.
         """
-        assert isinstance(condition, torch.Tensor)
-        assert isinstance(x, torch.Tensor)
-        assert isinstance(y, torch.Tensor)
+        pass
 
-        return torch.where(condition, x, y)
-
-    def all(self, x: Tensor, axis: Optional[int] = None) -> Tensor:
+    def all(self, x: Tensor, axis: Optional[int] = None) -> Union[bool, Tensor]:
         """Test whether all tensor elements are truthy.
         :param x: Tensor.
         :param axis: (optional) axis over which to reduce.
-        :returns: bool.
+        :returns: bool or tensor of bool.
         """
-        assert isinstance(x, torch.Tensor)
-        if axis is not None:
-            return torch.all(x, dim=axis)
-        else:
-            return torch.all(x)
+        pass
 
-    def any(self, x: Tensor, axis: Optional[int] = None) -> Tensor:
+    def any(self, x: Tensor, axis: Optional[int] = None) -> Union[bool, Tensor]:
         """Test whether any element of the tensor is truthy.
         :param x: Tensor.
         :param axis: (optional) axis over which to reduce.
-        :returns: bool.
+        :returns: bool or tensor of bool.
         """
-        assert isinstance(x, torch.Tensor)
-        if axis is not None:
-            return torch.any(x, dim=axis)
-        else:
-            return torch.any(x)
+        pass
 
     def isin(
         self,
@@ -643,9 +521,7 @@ class TorchBackend(Backend):
             for each element of 'test_elements' in 'elements'.
         :returns: tensor of booleans the same length as 'test_elements'.
         """
-        assert isinstance(elements, torch.Tensor)
-        assert isinstance(test_elements, torch.Tensor)
-        return torch.isin(elements, test_elements, assume_unique, invert)
+        pass
 
     def sort(self, x: Tensor, axis: Optional[int] = None) -> Tensor:
         """Return a sorted copy of the given tensor.
@@ -654,9 +530,7 @@ class TorchBackend(Backend):
         :param axis: the axis along which to sort the tensor.
         :returns: a sorted copy of the tensor.
         """
-        assert isinstance(x, torch.Tensor)
-        x_sorted, _ = torch.sort(x, dim=axis)
-        return x_sorted
+        pass
 
     # logical ops
 
@@ -665,8 +539,7 @@ class TorchBackend(Backend):
         :param x: the input tensor.
         :returns: not(x).
         """
-        assert isinstance(x, torch.Tensor)
-        return torch.logical_not(x)
+        pass
 
     def logical_or(self, x: Tensor, y: Tensor) -> Tensor:
         """Compute the logical disjunction of the elements of the input tensor.
@@ -674,9 +547,7 @@ class TorchBackend(Backend):
         :param y: input tensor.
         :returns: the element-wise disjunction x v y.
         """
-        assert isinstance(x, torch.Tensor)
-        assert isinstance(y, torch.Tensor)
-        return torch.logical_or(x, y)
+        pass
 
     def logical_xor(self, x: Tensor, y: Tensor) -> Tensor:
         """Compute the logical exclusive disjunction of the elements of the input tensor.
@@ -684,9 +555,7 @@ class TorchBackend(Backend):
         :param y: input tensor.
         :returns: the element-wise exclusive disjunction x (+) y.
         """
-        assert isinstance(x, torch.Tensor)
-        assert isinstance(y, torch.Tensor)
-        return torch.logical_xor(x, y)
+        pass
 
     def logical_and(self, x: Tensor, y: Tensor) -> Tensor:
         """Compute the logical conjunction of the elements of the input tensor.
@@ -694,6 +563,4 @@ class TorchBackend(Backend):
         :param y: input tensor.
         :returns: the element-wise conjunction x ^ y.
         """
-        assert isinstance(x, torch.Tensor)
-        assert isinstance(y, torch.Tensor)
-        return torch.logical_and(x, y)
+        pass
