@@ -2,24 +2,47 @@
 Interface for implementation of linear algebra backends.
 """
 
-from typing import Union, List, Tuple, Optional, Any, Iterable, overload
+from typing import Dict, Union, List, Tuple, Optional, Any, Iterable, overload
 
 import numpy as np
 
-from lab import Tensor, TensorList, TensorType
+from .types import Tensor, TensorList, TensorType, DeviceEnum, DtypeEnum
 
 
 class Backend:
     """Interface for linear algebra backends.
+    :param device: the device on which to linear algebra computations. Typically "cpu" or "cuda".
+    :param dtype: the default data type to use when creating tensors. Typically "float32" or "float64".
+    :param use_autodiff: whether or not to leave reverse mode autodiff active (if supported).
     :param name: a name for the linear algebra backend. Defaults to `None`, in which case the backend is anonymous.
+    :param seed: an optional seed for the default numpy random number generator.
     """
+
+    dtype_map: Dict[DtypeEnum, TensorType] = {}
+    default_dtype: TensorType
+    active_device: DeviceEnum
+
+    np_rng: np.random.Generator
+
+    def __init__(
+        self,
+        device: DeviceEnum = "cpu",
+        dtype: DtypeEnum = "float32",
+        use_autodiff: bool = False,
+        name: Optional[str] = None,
+        seed: int = 650,
+    ):
+        self.name = name
+        self.set_device(device)
+        self.set_global_dtype(dtype)
+        self.toggle_autodiff(use_autodiff)
+
+        self.np_rng = np.random.default_rng(seed=seed)
+        np.random.seed(seed)
 
     # ============================ #
     # ===== Concrete Methods ===== #
     # ============================ #
-
-    def __init__(self, name: Optional[str] = None):
-        self.name = name
 
     def all_to_np(self, list_of_x: Iterable[Tensor]) -> List[np.ndarray]:
         return [self.to_np(x) for x in list_of_x]
@@ -30,21 +53,21 @@ class Backend:
 
     # ===== Setters ===== #
 
+    def set_device(self, device_name: DeviceEnum):
+        """Set the default device for linear algebra operations.
+        :param device_name: a string identifying the device to use.
+        """
+        pass
+
+    def set_global_dtype(self, dtype: DtypeEnum):
+        """Set the default device for linear algebra operations.
+        :param device_name: a string identifying the device to use.
+        """
+        pass
+
     def toggle_autodiff(self, use_autodiff: bool):
         """Toggle an auto-diff engine associated with the backend.
         :param use_autodiff: whether or not to enable the autodiff engine.
-        """
-        pass
-
-    def set_global_dtype(self, dtype: TensorType):
-        """Set the default device for linear algebra operations.
-        :param device_name: a string identifying the device to use.
-        """
-        pass
-
-    def set_device(self, device_name: str):
-        """Set the default device for linear algebra operations.
-        :param device_name: a string identifying the device to use.
         """
         pass
 
@@ -168,19 +191,19 @@ class Backend:
         ...
 
     @overload
-    def arange(self, start: Union[int, float], end: Union[int, float]) -> Tensor:
+    def arange(self, start: Union[int, float], stop: Union[int, float]) -> Tensor:
         ...
 
     @overload
     def arange(
-        self, start: Union[int, float], end: Union[int, float], step: Union[int, float]
+        self, start: Union[int, float], stop: Union[int, float], step: Union[int, float]
     ) -> Tensor:
         ...
 
     def arange(
         self,
         start: Union[int, float],
-        end: Optional[Union[int, float]] = None,
+        stop: Optional[Union[int, float]] = None,
         step: Optional[Union[int, float]] = None,
     ) -> Tensor:
         """Return evenly spaced values within a given interval.
@@ -278,10 +301,10 @@ class Backend:
         """
         pass
 
-    def digitize(self, x: Tensor, boundaries: Tensor) -> Tensor:
+    def digitize(self, x: Tensor, bins: Tensor) -> Tensor:
         """Digitize or "bucketize" the values of x, returning the bucket index for each element.
         :param x: Tensor
-        :param boundaries: Tensor. The boundaries of the buckets to use for digitizing x.
+        :param bins: Tensor. The boundaries of the buckets to use for digitizing x.
         :returns: a tensor where each element has been replaced by the index of the bucket into which it falls.
         """
         pass
@@ -437,14 +460,6 @@ class Backend:
         """
         pass
 
-    def argmin(self, x: Tensor, axis: Optional[int] = None):
-        """Find and return the indices of the minimum values of a tensor along an axis.
-        :param x: Tensor.
-        :param axis: the axis along which to search.
-        :returns: argmin(x)
-        """
-        pass
-
     def argmax(self, x: Tensor, axis: Optional[int] = None):
         """Find and return the indices of the maximum values of a tensor along an axis.
         :param x: Tensor.
@@ -453,8 +468,16 @@ class Backend:
         """
         pass
 
+    def argmin(self, x: Tensor, axis: Optional[int] = None):
+        """Find and return the indices of the minimum values of a tensor along an axis.
+        :param x: Tensor.
+        :param axis: the axis along which to search.
+        :returns: argmin(x)
+        """
+        pass
+
     def unique(
-        self, x: Tensor, axis: int = None, return_index: bool = False
+        self, x: Tensor, axis: Optional[int] = None, return_index: bool = False
     ) -> Union[Tensor, Tuple[Tensor, Tensor]]:
         """Find the unique values in a tensor and return them.
         :param x: Tensor.

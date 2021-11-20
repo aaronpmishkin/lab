@@ -1,41 +1,50 @@
 """
 PyTorch implementation of backend for linear algebra operations.
 """
-from typing import Union, List, Tuple, Optional, cast, Any, overload
+from typing import Dict, Union, List, Tuple, Optional, cast, Any, overload
 
 import torch
 import numpy as np
+import opt_einsum as oe  # type: ignore
 
 from .backend import Backend
-
-# scaffolding
-
-from lab import Tensor, TensorList, TensorType
+from .types import Tensor, TensorList, TensorType, DeviceEnum, DtypeEnum
 
 
 class TorchBackend(Backend):
 
     """Wrapper for linear algebra operations implemented by PyTorch.
+    :param device: the device on which to linear algebra computations. Typically "cpu" or "cuda".
+    :param dtype: the default data type to use when creating tensors. Typically "float32" or "float64".
+    :param use_autodiff: whether or not to leave reverse mode autodiff active (if supported).
     :param name: a name for the linear algebra backend. Defaults to `None`, in which case the backend is anonymous.
+    :param seed: an optional seed for the default numpy random number generator.
     """
 
-    # TODO: replace types here with enumerate types.
+    dtype_map: Dict[DtypeEnum, TensorType] = {
+        "float32": torch.float32,
+        "float64": torch.float64,
+    }
 
-    active_device: str
-    default_dtype: TensorType
+    def __init__(
+        self,
+        device: DeviceEnum = "cpu",
+        dtype: DtypeEnum = "float32",
+        use_autodiff: bool = False,
+        name: Optional[str] = None,
+        seed: int = 650,
+    ):
+        super().__init__(device, dtype, use_autodiff, name, seed)
 
-    def __init__(self, name: Optional[str] = None):
-        super().__init__(name)
+        self.torch_rng = torch.Generator()
+        self.torch_rng.manual_seed(seed)
 
-        self.toggle_autodiff(False)
-        # TODO: update with constants.
-        self.set_device("cpu")
-        self.set_default_dtype(torch.float64)
+        # seed all torch devices.
+        torch.manual_seed(seed)
 
     # ===== Setters ===== #
 
-    # TODO: update type with enumeration.
-    def set_device(self, device_name: str):
+    def set_device(self, device_name: DeviceEnum):
         """Set the default device for linear algebra operations.
         :param device_name: a string identifying the device to use.
         """
@@ -214,19 +223,19 @@ class TorchBackend(Backend):
         ...
 
     @overload
-    def arange(self, start: Union[int, float], end: Union[int, float]) -> Tensor:
+    def arange(self, start: Union[int, float], stop: Union[int, float]) -> Tensor:
         ...
 
     @overload
     def arange(
-        self, start: Union[int, float], end: Union[int, float], step: Union[int, float]
+        self, start: Union[int, float], stop: Union[int, float], step: Union[int, float]
     ) -> Tensor:
         ...
 
     def arange(
         self,
         start: Union[int, float],
-        end: Optional[Union[int, float]] = None,
+        stop: Optional[Union[int, float]] = None,
         step: Optional[Union[int, float]] = None,
     ) -> Tensor:
         """Return evenly spaced values within a given interval.
@@ -234,7 +243,7 @@ class TorchBackend(Backend):
         :param stop: the (exclusive) stopping value for the interval.
         :param step: (optional) the increment to use when generating the values.
         """
-        return torch.arange(start, end, step)
+        return torch.arange(start, stop, step)
 
     def expand_dims(self, x: Tensor, axis: int) -> Tensor:
         """Insert a new axis into the tensor at 'axis' position.
@@ -254,6 +263,15 @@ class TorchBackend(Backend):
         return torch.squeeze(x)
 
     # math ops
+
+    def einsum(self, path: str, *args) -> Tensor:
+        """Optimized einsum operators.
+
+        Daniel G. A. Smith and Johnnie Gray, opt_einsum - A Python package for optimizing
+        contraction order for einsum-like expressions. Journal of Open Source Software, 2018, 3(26), 753
+        DOI: https://doi.org/10.21105/joss.00753
+        """
+        return oe.contract(path, *args, backend="torch")
 
     def sign(self, x: Tensor) -> Tensor:
         """Return the element-wise signs of the input tensor.
@@ -345,16 +363,16 @@ class TorchBackend(Backend):
 
         return torch.logsumexp(x, dim=axis)
 
-    def digitize(self, x: Tensor, boundaries: Tensor) -> Tensor:
+    def digitize(self, x: Tensor, bins: Tensor) -> Tensor:
         """Digitize or "bucketize" the values of x, returning the bucket index for each element.
         :param x: Tensor
-        :param boundaries: Tensor. The boundaries of the buckets to use for digitizing x.
+        :param bins: Tensor. The boundaries of the buckets to use for digitizing x.
         :returns: a tensor where each element has been replaced by the index of the bucket into which it falls.
         """
         assert isinstance(x, torch.Tensor)
-        assert isinstance(boundaries, torch.Tensor)
+        assert isinstance(bins, torch.Tensor)
 
-        return torch.bucketize(x, boundaries)
+        return torch.bucketize(x, bins)
 
     def maximum(self, x: Tensor, y: Tensor) -> Tensor:
         """Element-wise maximum of the two input tensors.
@@ -537,7 +555,7 @@ class TorchBackend(Backend):
         assert isinstance(x, torch.Tensor)
         return torch.min(x)
 
-    def argmax(self, x: Tensor, axis: int) -> Tensor:
+    def argmax(self, x: Tensor, axis: Optional[int] = None) -> Tensor:
         """Find and return the indices of the maximum values of a tensor along an axis.
         :param x: Tensor.
         :param axis: the axis along which to search.
@@ -546,7 +564,7 @@ class TorchBackend(Backend):
         assert isinstance(x, torch.Tensor)
         return torch.argmax(x, dim=axis)
 
-    def argmin(self, x: Tensor, axis: int) -> Tensor:
+    def argmin(self, x: Tensor, axis: Optional[int] = None) -> Tensor:
         """Find and return the indices of the minimum values of a tensor along an axis.
         :param x: Tensor.
         :param axis: the axis along which to search.
@@ -556,7 +574,7 @@ class TorchBackend(Backend):
         return torch.argmin(x, dim=axis)
 
     def unique(
-        self, x: Tensor, axis: int = None, return_index: bool = False
+        self, x: Tensor, axis: Optional[int] = None, return_index: bool = False
     ) -> Union[Tensor, Tuple[Tensor, Tensor]]:
         """Find the unique values in a tensor and return them.
         :param x: Tensor.
@@ -645,6 +663,7 @@ class TorchBackend(Backend):
         """
         assert isinstance(elements, torch.Tensor)
         assert isinstance(test_elements, torch.Tensor)
+
         return torch.isin(elements, test_elements, assume_unique, invert)
 
     def sort(self, x: Tensor, axis: Optional[int] = None) -> Tensor:
