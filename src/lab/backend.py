@@ -47,6 +47,9 @@ class Backend:
     def all_to_np(self, list_of_x: Iterable[Tensor]) -> List[np.ndarray]:
         return [self.to_np(x) for x in list_of_x]
 
+    def all_to_tensor(self, list_of_x: Iterable[Any]) -> List[Tensor]:
+        return [self.tensor(x) for x in list_of_x]
+
     # ============================ #
     # ===== Abstract Methods ===== #
     # ============================ #

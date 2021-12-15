@@ -33,7 +33,7 @@ class NumpyBackend(Backend):
         dtype: DtypeEnum = "float32",
         use_autodiff: bool = False,
         name: Optional[str] = None,
-        seed: int = 650
+        seed: int = 650,
     ):
         super().__init__(device, dtype, use_autodiff, name, seed)
 
@@ -48,7 +48,7 @@ class NumpyBackend(Backend):
                 f"NumpyBackend does not support device {device_name}. It only supports CPU devices."
             )
 
-    def set_default_dtype(self, dtype: DtypeEnum):
+    def set_global_dtype(self, dtype: DtypeEnum):
         """Set the default device for linear algebra operations.
         :param dtype: a string identifying the dtype to use.
         """
@@ -60,6 +60,15 @@ class NumpyBackend(Backend):
         """
         if use_autodiff:
             raise ValueError("NumpyBackend does not support automatic differentiation.")
+
+    # ===== Private Helpers ===== #
+
+    def _check_dtype(self, dtype: TensorType) -> np.dtype:
+        dtype = cast(np.dtype, dtype)
+        if not np.issubdtype(dtype, np.floating):
+            raise ValueError(f"Data type {dtype} is not a NumPy floating point type.")
+
+        return dtype
 
     # ===== Linear Algebra Methods ===== #
 
@@ -74,7 +83,7 @@ class NumpyBackend(Backend):
         if dtype is None:
             dtype = self.default_dtype
 
-        assert isinstance(dtype, np.dtype)
+        dtype = self._check_dtype(dtype)
         return np.array(x, dtype=dtype)
 
     def ravel(self, x: Tensor) -> Tensor:
@@ -154,7 +163,7 @@ class NumpyBackend(Backend):
         :returns: tensor filled with zeros of the desired shape.
         """
         dtype = self.default_dtype if dtype is None else dtype
-        assert isinstance(dtype, np.dtype)
+        dtype = self._check_dtype(dtype)
 
         return np.zeros(shape, dtype=dtype)
 
@@ -174,8 +183,8 @@ class NumpyBackend(Backend):
         :param dtype: the data type to use for the tensor.
         :returns: tensor filled with ones of the desired shape.
         """
-        dtype = default_dtype["value"] if dtype is None else dtype
-        assert isinstance(dtype, np.dtype)
+        dtype = self.default_dtype if dtype is None else dtype
+        dtype = self._check_dtype(dtype)
 
         return np.ones(shape, dtype=dtype)
 

@@ -58,14 +58,13 @@ class TorchBackend(Backend):
 
         self.active_device = device_name
 
-    def set_default_dtype(self, dtype: TensorType):
+    def set_global_dtype(self, dtype: DtypeEnum):
         """Set the default device for linear algebra operations.
         :param device_name: a string identifying the device to use.
         """
-        assert isinstance(dtype, torch.dtype)
 
-        self.default_dtype = dtype
-        torch.set_default_dtype(dtype)
+        self.default_dtype = self.dtype_map[dtype]
+        torch.set_default_dtype(self.default_dtype)
 
     def toggle_autodiff(self, use_autodiff: bool):
         """Toggle an auto-diff engine associated with the backend.
@@ -88,10 +87,6 @@ class TorchBackend(Backend):
         :param dtype: the data type to use when constructing the tensor.
         :returns: a new Tensor object with supplied data and type.
         """
-        if dtype is None:
-            dtype = self.default_dtype
-
-        assert isinstance(dtype, torch.dtype)
         return torch.tensor(x, device=self.active_device, dtype=dtype)
 
     def ravel(self, x: Tensor) -> Tensor:
@@ -172,7 +167,6 @@ class TorchBackend(Backend):
         :param dtype: the data type to use for the tensor.
         :returns: tensor filled with zeros of the desired shape.
         """
-        assert isinstance(dtype, torch.dtype)
         return torch.zeros(shape, device=self.active_device, dtype=dtype)
 
     def zeros_like(self, x: Tensor) -> Tensor:
@@ -191,7 +185,6 @@ class TorchBackend(Backend):
         :param dtype: the data type to use for the tensor.
         :returns: tensor filled with ones of the desired shape.
         """
-        assert isinstance(dtype, torch.dtype)
         return torch.ones(shape, device=self.active_device, dtype=dtype)
 
     def ones_like(self, x: Tensor) -> Tensor:
@@ -243,7 +236,12 @@ class TorchBackend(Backend):
         :param stop: the (exclusive) stopping value for the interval.
         :param step: (optional) the increment to use when generating the values.
         """
-        return torch.arange(start, stop, step)
+        if stop is None:
+            return torch.arange(start)
+        elif step is None:
+            return torch.arange(start, stop)
+        else:
+            return torch.arange(start, stop, step)
 
     def expand_dims(self, x: Tensor, axis: int) -> Tensor:
         """Insert a new axis into the tensor at 'axis' position.

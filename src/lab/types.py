@@ -2,7 +2,6 @@
 Types and global constants for LAB.
 """
 from typing import Literal, List, Union
-from itertools import product
 
 import numpy as np
 import torch
@@ -30,18 +29,6 @@ INT32: str = "INT32"
 INT64: str = "INT64"
 
 DTYPES: List[str] = [FLOAT32, FLOAT64, INT32, INT64]
-
-
-# testing
-
-TESTABLE_DTYPES = [FLOAT64]
-TESTABLE_BACKENDS = [NUMPY, TORCH]
-
-TEST_DICT = {"backend": TESTABLE_BACKENDS, "dtype": TESTABLE_DTYPES}
-
-TEST_GRID = [
-    dict(zip(TEST_DICT.keys(), values)) for values in product(*TEST_DICT.values())
-]
 
 # ===== types ===== #
 

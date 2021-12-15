@@ -1,9 +1,7 @@
 """
-Test linear algebra backends against reference implementation (NumPy).
+Test linear algebra backends with lazy implementation.
 """
-
 import unittest
-from itertools import product
 
 from parameterized import parameterized_class  # type: ignore
 import numpy as np
@@ -12,35 +10,31 @@ import torch
 
 import lab
 
+from test_backend import TEST_GRID  # type: ignore
+
 from lab.types import (
     TORCH,
     NUMPY,
+    CUPY,
+    CPU,
+    CUDA,
     FLOAT32,
     FLOAT64,
+    TensorType,
+    Tensor,
+    TensorList,
     BackendEnum,
     DtypeEnum,
+    DeviceEnum,
 )
-
-# ===== Constants ===== #
-
-TESTABLE_DTYPES = [FLOAT32, FLOAT64]
-TESTABLE_BACKENDS = [NUMPY, TORCH]
-
-TEST_DICT = {"backend": TESTABLE_BACKENDS, "dtype": TESTABLE_DTYPES}
-
-# Create grid for testing.
-TEST_GRID = [
-    dict(zip(TEST_DICT.keys(), values)) for values in product(*TEST_DICT.values())
-]
 
 # ===== Tests ===== #
 
 
 @parameterized_class(TEST_GRID)
-class TestBackends(unittest.TestCase):
+class TestLazyBackends(unittest.TestCase):
     """
-    Test linear algebra backends for interoperability and correctness by
-    comparison to a reference implementation (numpy).
+    Test lazy linear algebra backends.
     """
 
     backend: BackendEnum
@@ -48,7 +42,11 @@ class TestBackends(unittest.TestCase):
 
     def setUp(self):
         # setup backend
-        self.lab = lab.get_backend(impl=self.backend, name="test", dtype=self.dtype)
+        lab.reset()
+        self.lab = lab.get_backend(name="test_lazy", lazy=True)
+
+        # instantiate the lazy backend.
+        _ = lab.get_backend(name="test_lazy", impl=self.backend, dtype=self.dtype)
 
         self.rng = np.random.default_rng(seed=778)
 

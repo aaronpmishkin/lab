@@ -2,7 +2,7 @@
 Backends which support lazy initialization.
 This allows us to mimic the behavior of a module without the complexity of hot-swapping fields.
 """
-from typing import Dict, Union, List, Tuple, Optional, Any, Iterable, overload
+from typing import Optional, Any
 
 from .backend import Backend
 
@@ -10,15 +10,24 @@ from .backend import Backend
 class LazyBackend:
     """Interface for linear algebra backends which supports lazy initialization."""
 
-    def __init__(self, backend: Backend):
-        self.b = backend
+    _b: Optional[Backend] = None
+
+    def __init__(self, backend: Optional[Backend] = None):
+        self._b = backend
 
     def set_backend(self, backend: Backend):
-        self.b = backend
+        self._b = backend
 
     def get_backend(self):
-        return self.b
+        if self._b is None:
+            raise RuntimeError(
+                "Tried to get Backend from uninitialized instance of LazyBackend."
+            )
+
+        return self._b
 
     # route all calls to the underlying backend.
     def __getattr__(self, attr: str) -> Any:
-        return self.b.__getattribute__(attr)
+        assert self._b is not None
+
+        return self._b.__getattribute__(attr)
