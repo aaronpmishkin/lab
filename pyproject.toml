@@ -20,6 +20,7 @@ classifiers = [
 dependencies = [
     "numpy",
     "torch",
+    "opt_einsum",
 ]
 
 [tool.setuptools.packages.find]
